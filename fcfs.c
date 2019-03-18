@@ -4,15 +4,39 @@
 
 #include "fcfs.h"
 
+/**
+ * Sets the time values of the process.
+ */
+void populateProcess(Process *process) {
 
+}
+
+/**
+ * Populates the queue with processes
+ * given by the user.
+ */
+void populateQueue(Queue *queue) {
+    int i = 0;
+    while(in) {
+        Process p = initializeProcess();
+        populateProcess(in, p);
+    }
+
+}
+/**
+ * Initialization of queue of specific size.
+*/
 Queue initializeQueue(int size) {
     Queue q;
     q.size = size;
-    q.slots = malloc(size * sizeof(int));
+    q.slots = malloc(size * sizeof(Process));
     assert(q.slots != NULL);
     return q;
 }
 
+/**
+ * Doubles the size of a queue. 
+ */
 int doubleSizeOfQueue(Queue *q) {
     int oldSize = q->size;
     int newSize = oldSize * 2;
@@ -27,9 +51,6 @@ int doubleSizeOfQueue(Queue *q) {
 
 int main(int argc, char* argv[]) {
     Queue queue = initializeQueue(QUEUE_SIZE);
-    printf("Size of queue = %d\n", queue.size);
-    if (!doubleSizeOfQueue(&queue)) {
-        printf("ALLOC FAILED!\n");
-    }
-    printf("Size of queue = %d\n", queue.size);
+    populateQueue(&queue);
+    
 }
