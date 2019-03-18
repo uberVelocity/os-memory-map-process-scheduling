@@ -17,10 +17,10 @@ void populateProcess(Process *process) {
  */
 void populateQueue(Queue *queue) {
     int i = 0;
-    while(in) {
-        Process p = initializeProcess();
-        populateProcess(in, p);
-    }
+    // while(in) {
+    //     Process p = initializeProcess();
+    //     populateProcess(in, p);
+    // }
 
 }
 /**
