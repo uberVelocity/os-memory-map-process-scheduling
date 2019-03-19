@@ -1,2 +1,4 @@
-compilerule:    fcfs.c fcfs.h
-	gcc -std=c99 -o fcfs fcfs.c fcfs.h -g -I.
+CC = gcc
+CFLAGS = -g -I.
+fcfsmake: fcfs.c
+	$(CC) -o fcfs fcfs.c fcfs.h $(CFLAGS)
