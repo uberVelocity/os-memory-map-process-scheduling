@@ -1,8 +1,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "fcfs.h"
+
+/**
+ * Convert string input into int array.
+ */
+int *convertStringToInt(char *string) {
+    int i;
+    int *array = calloc(strlen(string), sizeof(int));
+    assert(array != NULL);
+    for (i = 0; i < strlen(string); i++) {
+        array[i] = string[i];
+    }
+    return array;
+}
+
+/**
+ * Remove newline from input.
+ */
+void removeNewline(char **buffer, int inputSize) {
+    for (int i = 0; i < inputSize; i++) {
+        buffer[i][strlen(buffer[i]) - 1] = 0;
+    }
+}
+
+/**
+ * Resizes the buffer from MAX_NUM_PROCESSES to inputSize.
+ */
+void resizeBuffer(char **buffer, int *inputSize) {
+    int i;
+    *inputSize = 0;
+    for (i = 0; i < MAX_NUM_PROCESSES; i++) {
+        if (buffer[i][0] == 0) {
+            printf("newline encountered at %d\n", i);
+            *inputSize = i;
+            break;
+        }
+    }
+    buffer = realloc(buffer, *inputSize * sizeof(char*));
+    assert(buffer != NULL);
+    removeNewline(buffer, *inputSize);
+}
+
+/**
+ * Reads the input as a string.
+ */
+char **readInput(int *inputSize) {
+    int i = 0;
+    char **buffer = calloc(MAX_NUM_PROCESSES, sizeof(char*));
+    assert(buffer != NULL);
+    for (i = 0; i < MAX_NUM_PROCESSES; i++) {
+        buffer[i] = calloc(BUFFER_SIZE, sizeof(char));
+        assert(buffer[i] != NULL);
+        fgets(buffer[i], BUFFER_SIZE, stdin);
+    }
+    resizeBuffer(buffer, inputSize);
+    return buffer;
+}
 
 /**
  * Sets the time values of the process.
@@ -50,7 +107,8 @@ int doubleSizeOfQueue(Queue *q) {
 }
 
 int main(int argc, char* argv[]) {
-    Queue queue = initializeQueue(QUEUE_SIZE);
-    populateQueue(&queue);
+    int inputSize;
+    char **input = readInput(&inputSize);
+    printf("inputSize = %d\n", inputSize);
     
 }
