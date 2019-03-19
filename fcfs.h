@@ -26,9 +26,9 @@ void populateProcess(Process*);
 void resizeBuffer(char **, int *);
 void freeStrArray(char **, int);
 void print2dIntArray(int **, int);
-char **readInput(int *);
+void readInput(char **, int *);
+void convertStrArr(char **, int, int **);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
-int **convertStrArr(char **, int);
 Queue initializeQueue(int);
 

@@ -40,13 +40,13 @@ void freeStrArray(char **array, int size) {
 /**
  * Converts array of strings to array of ints.
  */
-int **convertStrArr(char **stringArray, int numProcesses) {
-    printf("num processes!#!@#!@$ : %d\n", numProcesses);
-    int **intArray = calloc(numProcesses, sizeof(int*)), i;
+void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
+    int i;
+    intArray = calloc(numProcesses, sizeof(int*));
+    assert(intArray != NULL);
     for (i = 0; i < numProcesses; i++) {
         printf("string=%s\n", stringArray[i]);
     }
-    assert(intArray != NULL);
     for (int i = 0; i < numProcesses; i++) {
         convertStringToInt(stringArray[i], intArray[i]);
         for (int j = 0; j < strlen(stringArray[i]); j++) {
@@ -54,7 +54,6 @@ int **convertStrArr(char **stringArray, int numProcesses) {
         }
         printf("\n");
     }
-    return intArray;
 }
 
 /**
@@ -78,9 +77,9 @@ void resizeBuffer(char **buffer, int *numProcesses) {
 /**
  * Reads the input as a string.
  */
-char **readInput(int *numProcesses) {
+void readInput(char **buffer, int *numProcesses) {
     int i = 0;
-    char **buffer = calloc(MAX_NUM_PROCESSES, sizeof(char*));
+    buffer = calloc(MAX_NUM_PROCESSES, sizeof(char*));
     assert(buffer != NULL);
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
         buffer[i] = calloc(BUFFER_SIZE, sizeof(char));
@@ -88,7 +87,6 @@ char **readInput(int *numProcesses) {
         fgets(buffer[i], BUFFER_SIZE, stdin);
     }
     resizeBuffer(buffer, numProcesses);
-    return buffer;
 }
 
 /**
@@ -149,12 +147,16 @@ int doubleSizeOfQueue(Queue *q) {
 }
 
 int main(int argc, char* argv[]) {
+    char **input;
+    int ** intArray;
     int numProcesses, i;
-    char **input = readInput(&numProcesses);
+    
+    readInput(input, &numProcesses);
+    printf("numProcess:%d\n", numProcesses);
     for (i = 0; i < numProcesses; i++) {
         printf("%s\n", input[i]);
     }
-    printf("num processes = %d\n", numProcesses);
-    int **arrayInt = convertStrArr(input, numProcesses);
-    // print2dIntArray(convertedInput, numProcesses);
+
+    convertStrArr(input, numProcesses, intArray);
+    print2dIntArray(intArray, numProcesses);
 }
