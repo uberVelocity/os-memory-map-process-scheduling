@@ -28,24 +28,21 @@ void freeStrArray(char **array, int size) {
 /**
  * Converts array of strings to array of ints.
  */
-void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
+int **convertStrArr(char **stringArray, int numProcesses) {
     int i, j;
-    intArray = calloc(numProcesses, sizeof(int*));
+    int **intArray = calloc(numProcesses, sizeof(int*));
     assert(intArray != NULL);
     printf("WILL PRINT INT ARRAY!\n");
     for (i = 0; i < numProcesses; i++) {
-        int size = strlen(stringArray[i]);
         char *cp = strtok(stringArray[i], " ");
-        printf("cp = %s\n", cp);
-        intArray[i] = calloc(size, sizeof(int));
+        intArray[i] = calloc(BUFFER_SIZE, sizeof(int));
         assert(intArray[i] != NULL);
-        printf("SIZE = %d\n", size);
         j = 0;
         while (cp != NULL) {
             intArray[i][j] = atoi(cp);
             cp = strtok(NULL, " ");
             j++;
-        }       
+        }
     }
     for (i = 0; i < numProcesses; i++) {
         j = 0;
@@ -55,6 +52,7 @@ void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
         }
         printf("\n");
     }
+    return intArray;
 }
 
 /**
@@ -85,8 +83,6 @@ char **readInput(int *numProcesses) {
         buffer[i] = calloc(BUFFER_SIZE, sizeof(char));
         assert(buffer[i] != NULL);
         fgets(buffer[i], BUFFER_SIZE, stdin);
-        printf("buffer[i] =%s", buffer[i]);
-        printf("strlen(buffer[%d]) = %d\n", i, strlen(buffer[i]));
     }
     resizeBuffer(buffer, numProcesses);
     removeNewline(buffer, *numProcesses);
@@ -163,14 +159,16 @@ int main(int argc, char* argv[]) {
         printf("%s\n", input[i]);
     }
 
-    convertStrArr(input, numProcesses, intArray);
+    intArray = convertStrArr(input, numProcesses);
     printf("\n---------------\n");
     for (i = 0; i < numProcesses; i++) {
         j = 0;
         while (intArray[i][j] != -1) {
             printf("%d ", intArray[i][j]);
+            j++;
         }
         printf("\n");
     }
+    printf("\n---------------\n");
     print2dIntArray(intArray, numProcesses);
 }
