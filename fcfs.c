@@ -21,9 +21,10 @@ int *convertStringToInt(char *string, int *intArray) {
 /**
  * Remove newline from input.
  */
-void removeNewline(char **buffer, int numProcesses) {
+void removeNewline(char ***buffer, int numProcesses) {
     for (int i = 0; i < numProcesses; i++) {
-        buffer[i][strlen(buffer[i]) - 1] = 0;
+        *buffer[i][strlen(*buffer[i]) - 1] = 0;
+        
     }
 }
 
@@ -59,34 +60,31 @@ void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
 /**
  * Resizes the buffer from MAX_NUM_PROCESSES to inputSize.
  */
-void resizeBuffer(char **buffer, int *numProcesses) {
+void resizeBuffer(char ***buffer, int *numProcesses) {
     int i;
     *numProcesses = 0;
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
+        // printf("buffer[%d] = %s\n", i, buffer[i]);
         if (buffer[i][0] == 0) {
-            printf("newline encountered at %d\n", i);
             *numProcesses = i;
             break;
         }
     }
-    buffer = realloc(buffer, *numProcesses * sizeof(char*));
-    assert(&buffer != NULL);
-    removeNewline(buffer, *numProcesses);
+    *buffer = realloc(*buffer, *numProcesses * sizeof(char*));
+    assert(*buffer != NULL);
 }
 
 /**
  * Reads the input as a string.
  */
-void readInput(char **buffer, int *numProcesses) {
+void readInput(char ***buffer) {
     int i = 0;
-    buffer = calloc(MAX_NUM_PROCESSES, sizeof(char*));
-    assert(buffer != NULL);
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
         buffer[i] = calloc(BUFFER_SIZE, sizeof(char));
-        assert(buffer[i] != NULL);
-        fgets(buffer[i], BUFFER_SIZE, stdin);
+        assert(*buffer[i] != NULL);
+        fgets(*buffer[i], BUFFER_SIZE, stdin);
+        if (*buffer[i] != NULL)  printf("buffer[%d] = %s", i, *buffer[i]);
     }
-    resizeBuffer(buffer, numProcesses);
 }
 
 /**
@@ -147,16 +145,21 @@ int doubleSizeOfQueue(Queue *q) {
 }
 
 int main(int argc, char* argv[]) {
-    char **input;
-    int ** intArray;
+    char **input = calloc(MAX_NUM_PROCESSES, sizeof(char*));
+    assert(input != NULL);
+    int **intArray = calloc(MAX_NUM_PROCESSES, sizeof(int*));
     int numProcesses, i;
     
-    readInput(input, &numProcesses);
-    printf("numProcess:%d\n", numProcesses);
+
+    readInput(&input);
+    resizeBuffer(&input, &numProcesses);
+    printf("%d\n", numProcesses);
+    removeNewline(&input, numProcesses);
     for (i = 0; i < numProcesses; i++) {
         printf("%s\n", input[i]);
     }
 
-    convertStrArr(input, numProcesses, intArray);
+    // convertStrArr(&input, numProcesses, intArray);
+
     print2dIntArray(intArray, numProcesses);
 }

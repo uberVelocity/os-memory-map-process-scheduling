@@ -10,7 +10,6 @@ typedef struct Processes {
     int priority;
     int end;
     int *times; //even:CPU, odd:IO.
-    
 }Process;
 
 typedef struct Queues {
@@ -20,13 +19,13 @@ typedef struct Queues {
     Process *slots;
 }Queue;
 
-void removeNewline(char **, int);
+void removeNewline(char ***, int);
 void populateQueue(Queue *);
 void populateProcess(Process*);
-void resizeBuffer(char **, int *);
+void resizeBuffer(char ***, int *);
 void freeStrArray(char **, int);
 void print2dIntArray(int **, int);
-void readInput(char **, int *);
+void readInput(char ***);
 void convertStrArr(char **, int, int **);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
