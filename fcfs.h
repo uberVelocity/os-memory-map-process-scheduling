@@ -10,7 +10,6 @@ typedef struct Processes {
     int priority;
     int end;
     int *times; //even:CPU, odd:IO.
-    
 }Process;
 
 typedef struct Queues {
@@ -29,6 +28,6 @@ void print2dIntArray(int **, int);
 char **readInput(int *);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
-int **convertStrArr(char **, int);
+int ** convertStrArr(char **, int);
 Queue initializeQueue(int);
 
