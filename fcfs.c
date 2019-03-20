@@ -21,10 +21,9 @@ int *convertStringToInt(char *string, int *intArray) {
 /**
  * Remove newline from input.
  */
-void removeNewline(char ***buffer, int numProcesses) {
+void removeNewline(char **buffer, int numProcesses) {
     for (int i = 0; i < numProcesses; i++) {
-        *buffer[i][strlen(*buffer[i]) - 1] = 0;
-        
+        buffer[i][strlen(buffer[i]) - 1] = 0;
     }
 }
 
@@ -60,7 +59,7 @@ void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
 /**
  * Resizes the buffer from MAX_NUM_PROCESSES to inputSize.
  */
-void resizeBuffer(char ***buffer, int *numProcesses) {
+void resizeBuffer(char **buffer, int *numProcesses) {
     int i;
     *numProcesses = 0;
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
@@ -70,21 +69,26 @@ void resizeBuffer(char ***buffer, int *numProcesses) {
             break;
         }
     }
-    *buffer = realloc(*buffer, *numProcesses * sizeof(char*));
-    assert(*buffer != NULL);
+    buffer = realloc(buffer, *numProcesses * sizeof(char*));
+    assert(buffer != NULL);
 }
 
 /**
  * Reads the input as a string.
  */
-void readInput(char ***buffer) {
+char **readInput(int *numProcesses) {
     int i = 0;
+    char **buffer = calloc(MAX_NUM_PROCESSES, sizeof(char*));
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
         buffer[i] = calloc(BUFFER_SIZE, sizeof(char));
-        assert(*buffer[i] != NULL);
-        fgets(*buffer[i], BUFFER_SIZE, stdin);
-        if (*buffer[i] != NULL)  printf("buffer[%d] = %s", i, *buffer[i]);
+        assert(buffer[i] != NULL);
+        fgets(buffer[i], BUFFER_SIZE, stdin);
+        printf("buffer[i] =%s", buffer[i]);
     }
+    resizeBuffer(buffer, numProcesses);
+    removeNewline(buffer, *numProcesses);
+    return buffer;
+
 }
 
 /**
@@ -151,15 +155,13 @@ int main(int argc, char* argv[]) {
     int numProcesses, i;
     
 
-    readInput(&input);
-    resizeBuffer(&input, &numProcesses);
+    input = readInput(&numProcesses);
     printf("%d\n", numProcesses);
-    removeNewline(&input, numProcesses);
     for (i = 0; i < numProcesses; i++) {
         printf("%s\n", input[i]);
     }
 
-    // convertStrArr(&input, numProcesses, intArray);
+    convertStrArr(input, numProcesses, intArray);
 
-    print2dIntArray(intArray, numProcesses);
+    // print2dIntArray(intArray, numProcesses);
 }

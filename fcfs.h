@@ -19,13 +19,13 @@ typedef struct Queues {
     Process *slots;
 }Queue;
 
-void removeNewline(char ***, int);
+void removeNewline(char **, int);
 void populateQueue(Queue *);
 void populateProcess(Process*);
-void resizeBuffer(char ***, int *);
+void resizeBuffer(char **, int *);
 void freeStrArray(char **, int);
 void print2dIntArray(int **, int);
-void readInput(char ***);
+char **readInput(int*);
 void convertStrArr(char **, int, int **);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
