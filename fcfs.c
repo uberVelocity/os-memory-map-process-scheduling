@@ -5,18 +5,6 @@
 
 #include "fcfs.h"
 
-/**
- * Convert string input into int array.
- */
-int *convertStringToInt(char *string, int *intArray) {
-    int i;
-    intArray = calloc(strlen(string), sizeof(int));
-    assert(intArray != NULL);
-    for (i = 0; i < strlen(string); i++) {
-        intArray[i] = (int)string[i];
-    }
-    return intArray;
-}
 
 /**
  * Remove newline from input.
@@ -41,16 +29,29 @@ void freeStrArray(char **array, int size) {
  * Converts array of strings to array of ints.
  */
 void convertStrArr(char **stringArray, int numProcesses, int **intArray) {
-    int i;
+    int i, j;
     intArray = calloc(numProcesses, sizeof(int*));
     assert(intArray != NULL);
+    printf("WILL PRINT INT ARRAY!\n");
     for (i = 0; i < numProcesses; i++) {
-        printf("string=%s\n", stringArray[i]);
+        int size = strlen(stringArray[i]);
+        char *cp = strtok(stringArray[i], " ");
+        printf("cp = %s\n", cp);
+        intArray[i] = calloc(size, sizeof(int));
+        assert(intArray[i] != NULL);
+        printf("SIZE = %d\n", size);
+        j = 0;
+        while (cp != NULL) {
+            intArray[i][j] = atoi(cp);
+            cp = strtok(NULL, " ");
+            j++;
+        }       
     }
-    for (int i = 0; i < numProcesses; i++) {
-        convertStringToInt(stringArray[i], intArray[i]);
-        for (int j = 0; j < strlen(stringArray[i]); j++) {
+    for (i = 0; i < numProcesses; i++) {
+        j = 0;
+        while (intArray[i][j] != -1) {
             printf("%d ", intArray[i][j]);
+            j++;
         }
         printf("\n");
     }
@@ -69,7 +70,8 @@ void resizeBuffer(char **buffer, int *numProcesses) {
             break;
         }
     }
-    buffer = realloc(buffer, *numProcesses * sizeof(char*));
+    printf("%d\n", *numProcesses);
+    // buffer = realloc(buffer, *numProcesses * sizeof(char*));
     assert(buffer != NULL);
 }
 
@@ -84,11 +86,11 @@ char **readInput(int *numProcesses) {
         assert(buffer[i] != NULL);
         fgets(buffer[i], BUFFER_SIZE, stdin);
         printf("buffer[i] =%s", buffer[i]);
+        printf("strlen(buffer[%d]) = %d\n", i, strlen(buffer[i]));
     }
     resizeBuffer(buffer, numProcesses);
     removeNewline(buffer, *numProcesses);
     return buffer;
-
 }
 
 /**
@@ -152,7 +154,7 @@ int main(int argc, char* argv[]) {
     char **input = calloc(MAX_NUM_PROCESSES, sizeof(char*));
     assert(input != NULL);
     int **intArray = calloc(MAX_NUM_PROCESSES, sizeof(int*));
-    int numProcesses, i;
+    int numProcesses, i, j;
     
 
     input = readInput(&numProcesses);
@@ -162,6 +164,13 @@ int main(int argc, char* argv[]) {
     }
 
     convertStrArr(input, numProcesses, intArray);
-
-    // print2dIntArray(intArray, numProcesses);
+    printf("\n---------------\n");
+    for (i = 0; i < numProcesses; i++) {
+        j = 0;
+        while (intArray[i][j] != -1) {
+            printf("%d ", intArray[i][j]);
+        }
+        printf("\n");
+    }
+    print2dIntArray(intArray, numProcesses);
 }
