@@ -6,8 +6,13 @@
 #define QUEUE_SIZE 32
 #define BUFFER_SIZE 1024
 
+#define P_DEFAULT 0
+#define P_HIGH 1
+#define P_MEDIUM 2
+#define P_LOW 3
 
 typedef struct Processes {
+    int turnaroundTime;
     int arrivalTime;
     int priority;
     int end;
@@ -15,12 +20,15 @@ typedef struct Processes {
 }Process;
 
 typedef struct Queues {
+    int priority;   // 0 - DEFAULT, 1 - HIGH, 2 - MEDIUM, 3 - LOW.
     int size;
     int front;
     int back;
     Process *slots;
 }Queue;
 
+void FCFS();
+void compTurnaroundTime(Queue *, int);
 void freeProcessesInQueue(Queue *, int);
 void removeNewline(char **, int);
 void populateQueue(Queue *, int, int **);
@@ -35,5 +43,5 @@ char **readInput(int *);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
 int **convertStrArr(char **, int);
-Queue initializeQueue(int);
+Queue initializeQueue(int, int);
 Process initializeProcess();
