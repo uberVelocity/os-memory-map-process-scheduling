@@ -12,6 +12,9 @@
 #define P_LOW 3
 
 typedef struct Processes {
+    int serviceTime;
+    int burstTime;
+    int waitTime;
     int turnaroundTime;
     int arrivalTime;
     int priority;
