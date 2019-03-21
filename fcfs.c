@@ -16,9 +16,19 @@ void removeNewline(char **buffer, int numProcesses) {
 }
 
 /**
- * Free char *array.
+ * Free char **array.
  */
 void freeStrArray(char **array, int size) {
+    for (int i = 0; i < size; i++) {
+        free(array[i]);
+    }
+    free(array);
+}
+
+/**
+ * Free int **array.
+ */
+void freeIntArray(int **array, int size) {
     for (int i = 0; i < size; i++) {
         free(array[i]);
     }
@@ -32,7 +42,6 @@ int **convertStrArr(char **stringArray, int numProcesses) {
     int i, j;
     int **intArray = calloc(numProcesses, sizeof(int*));
     assert(intArray != NULL);
-    printf("WILL PRINT INT ARRAY!\n");
     for (i = 0; i < numProcesses; i++) {
         char *cp = strtok(stringArray[i], " ");
         intArray[i] = calloc(BUFFER_SIZE, sizeof(int));
@@ -44,14 +53,7 @@ int **convertStrArr(char **stringArray, int numProcesses) {
             j++;
         }
     }
-    for (i = 0; i < numProcesses; i++) {
-        j = 0;
-        while (intArray[i][j] != -1) {
-            printf("%d ", intArray[i][j]);
-            j++;
-        }
-        printf("\n");
-    }
+    freeStrArray(stringArray, MAX_NUM_PROCESSES);
     return intArray;
 }
 
@@ -62,14 +64,11 @@ void resizeBuffer(char **buffer, int *numProcesses) {
     int i;
     *numProcesses = 0;
     for (i = 0; i < MAX_NUM_PROCESSES; i++) {
-        // printf("buffer[%d] = %s\n", i, buffer[i]);
         if (buffer[i][0] == 0) {
             *numProcesses = i;
             break;
         }
     }
-    printf("%d\n", *numProcesses);
-    // buffer = realloc(buffer, *numProcesses * sizeof(char*));
     assert(buffer != NULL);
 }
 
@@ -90,12 +89,8 @@ char **readInput(int *numProcesses) {
 }
 
 /**
- * Sets the time values of the process.
+ * Print a 2D int array.
  */
-void populateProcess(Process *process) {
-
-}
-
 void print2dIntArray(int **array, int numProcesses) {
     for (int i = 0; i < numProcesses; i++) {
         int j = 0;
@@ -103,32 +98,101 @@ void print2dIntArray(int **array, int numProcesses) {
             printf("%d ", array[i][j]);
             j++;
         }
+        printf("%d ", array[i][j]);
         printf("\n");
     }
+}
+
+/**
+ * Sets the time values of the process.
+ */
+void populateProcess(Process *process, int *values) {
+    int i = 0;
+    while (values[i] != -1) {
+        process->times[i] = values[i];
+        i++;
+    }
+    process->times[i] = values[i];
+    process->arrivalTime = values[0];
+    process->priority = values[1];
+    process->end = values[i];
+    process->times = realloc(process->times, (i+1) * sizeof(int));
 }
 
 /**
  * Populates the queue with processes
  * given by the user.
  */
-void populateQueue(Queue *queue) {
-    int i = 0;
-    // while(in) {
-    //     Process p = initializeProcess();
-    //     populateProcess(in, p);
-    // }
+void populateQueue(Queue *queue, int numProcesses, int **intArray) {
+    for (int i = 0; i < numProcesses; i++) {
+        Process process = initializeProcess();
+        populateProcess(&process, intArray[i]);
+        insertIntoQueue(&process, queue);
+    }
+    freeIntArray(intArray, numProcesses);
+}
 
+/**
+ * Inserts a process into the queue.
+ */
+void insertIntoQueue(Process *p, Queue *q) {
+    if (q->back == q->size) {
+        if (!doubleSizeOfQueue(q)) {
+            perror("Error: failed to double size of queue...\n");
+            abort();
+        }
+    }
+    q->slots[q->back] = *p;
+    q->back++;
 }
 
 /**
  * Initialization of queue of specific size.
  */
-Queue initializeQueue(int size) {
+Queue initializeQueue(int size, int priority) {
     Queue q;
+    q.priority = priority;
     q.size = size;
+    q.front = 0;
+    q.back = 0;
     q.slots = malloc(size * sizeof(Process));
     assert(q.slots != NULL);
     return q;
+}
+
+/**
+ * Frees the slots of every process in the queue.
+ */
+void freeProcessesInQueue(Queue *q, int numProcesses) {
+    for (int i = 0; i < numProcesses; i++) {
+        free(q->slots[i].times);
+    }
+}
+
+/**
+ * Initializes a process.
+ */
+Process initializeProcess() {
+    Process process;
+    process.turnaroundTime = 0;
+    process.times = calloc(MAX_NUM_TIMES, sizeof(int));
+    return process;
+}
+
+/**
+ * Prints the running times of each process in the queue.
+ */
+void printProcessesInQueue(Queue q, int numProcesses) {
+    for (int i = 0; i < numProcesses; i++) {
+        printf("process[%d]=", i);
+        int j = 0;
+        while (q.slots[i].times[j] != -1) {
+            printf("%d ", q.slots[i].times[j]);
+            j++;
+        }
+        printf("%d", q.slots[i].times[j]);
+        printf("\n");
+    }
 }
 
 /**
@@ -146,29 +210,53 @@ int doubleSizeOfQueue(Queue *q) {
     return 0;
 }
 
-int main(int argc, char* argv[]) {
-    char **input = calloc(MAX_NUM_PROCESSES, sizeof(char*));
-    assert(input != NULL);
-    int **intArray = calloc(MAX_NUM_PROCESSES, sizeof(int*));
-    int numProcesses, i, j;
-    
-
-    input = readInput(&numProcesses);
-    printf("%d\n", numProcesses);
+/**
+ * Computes average turnaround time for a queue of processes using the 
+ * First-come-First-served strategy.
+ */
+void compTurnaroundFCFS(Queue *q, int numProcesses) {
+    float average = 0.0;
+    int i, j;
     for (i = 0; i < numProcesses; i++) {
-        printf("%s\n", input[i]);
-    }
-
-    intArray = convertStrArr(input, numProcesses);
-    printf("\n---------------\n");
-    for (i = 0; i < numProcesses; i++) {
-        j = 0;
-        while (intArray[i][j] != -1) {
-            printf("%d ", intArray[i][j]);
+        j = 2;
+        q->slots[i].turnaroundTime += q->slots[i].arrivalTime;
+        if (i > 0) {
+            q->slots[i].turnaroundTime += q->slots[i-1].turnaroundTime;
+        }
+        while (q->slots[i].times[j] != q->slots[i].end) {
+            q->slots[i].turnaroundTime += q->slots[i].times[j];
             j++;
         }
-        printf("\n");
+        printf("Total time of process %d = %d\n", i, q->slots[i].turnaroundTime);
     }
-    printf("\n---------------\n");
+    for (i = 0; i < numProcesses; i++) {
+        average += q->slots[i].turnaroundTime;
+    }
+    average /= numProcesses;
+    printf("Average of processes = %.2f\n", average);
+}
+
+/**
+ * Simulates the First-come-first-served (FCFS) algorithm on a set of 
+ * processes with running times given from stdin. 
+ */
+void FCFS() {
+    char **input = calloc(MAX_NUM_PROCESSES, sizeof(char*));
+    int **intArray, numProcesses, i, j;
+    assert(input != NULL);
+    input = readInput(&numProcesses);
+    intArray = convertStrArr(input, numProcesses);
+    Queue queue = initializeQueue(numProcesses, P_DEFAULT);
+
     print2dIntArray(intArray, numProcesses);
+    populateQueue(&queue, numProcesses, intArray);
+    printProcessesInQueue(queue, numProcesses);
+    compTurnaroundFCFS(&queue, numProcesses);
+
+    freeProcessesInQueue(&queue, numProcesses);
+    free(queue.slots);
+}
+
+int main(int argc, char* argv[]) {
+    FCFS();
 }
