@@ -241,12 +241,12 @@ void compTurnaroundFCFS(Queue *q, int numProcesses) {
  * processes with running times given from stdin. 
  */
 void FCFS() {
-    char **input = calloc(MAX_NUM_PROCESSES, sizeof(char*));
+    char **input;
     int **intArray, numProcesses, i, j;
     assert(input != NULL);
     input = readInput(&numProcesses);
     intArray = convertStrArr(input, numProcesses);
-    Queue queue = initializeQueue(numProcesses, P_DEFAULT);
+    Queue queue = initializeQueue(numProcesses, P_DEFAULT); 
 
     print2dIntArray(intArray, numProcesses);
     populateQueue(&queue, numProcesses, intArray);
@@ -259,4 +259,5 @@ void FCFS() {
 
 int main(int argc, char* argv[]) {
     FCFS();
+    return EXIT_SUCCESS;
 }
