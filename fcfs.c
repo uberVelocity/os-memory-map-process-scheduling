@@ -219,7 +219,7 @@ void compTurnaroundFCFS(Queue *q, int numProcesses) {
     int i, j;
     for (i = 0; i < numProcesses; i++) {
         j = 2;
-        q->slots[i].turnaroundTime += q->slots[i].arrivalTime;
+        q->slots[i].turnaroundTime -= q->slots[i].arrivalTime;
         if (i > 0) {
             q->slots[i].turnaroundTime += q->slots[i-1].turnaroundTime;
         }
