@@ -31,6 +31,8 @@ typedef struct Queues {
 }Queue;
 
 void FCFS();
+void computeWaitTime(Queue *, int);
+void computeBurst(Process *);
 void compTurnaroundTime(Queue *, int);
 void freeProcessesInQueue(Queue *, int);
 void removeNewline(char **, int);
@@ -43,7 +45,7 @@ void freeIntArray(int **, int);
 void print2dIntArray(int **, int);
 void printProcessesInQueue(Queue, int);
 char **readInput(int *);
-int doubleSizeOfQueue(Queue*);
+int doubleSizeOfQueue(Queue *);
 int *convertStringToInt(char *, int*);
 int **convertStrArr(char **, int);
 Queue initializeQueue(int, int);
