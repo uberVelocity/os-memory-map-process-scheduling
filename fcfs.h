@@ -21,6 +21,7 @@ typedef struct Queues {
     Process *slots;
 }Queue;
 
+void freeProcessesInQueue(Queue *, int);
 void removeNewline(char **, int);
 void populateQueue(Queue *, int, int **);
 void populateProcess(Process *, int *);
@@ -29,6 +30,7 @@ void resizeBuffer(char **, int *);
 void freeStrArray(char **, int);
 void freeIntArray(int **, int);
 void print2dIntArray(int **, int);
+void printProcessesInQueue(Queue, int);
 char **readInput(int *);
 int doubleSizeOfQueue(Queue*);
 int *convertStringToInt(char *, int*);
