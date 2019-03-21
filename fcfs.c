@@ -174,6 +174,9 @@ void freeProcessesInQueue(Queue *q, int numProcesses) {
  */
 Process initializeProcess() {
     Process process;
+    process.serviceTime = 0;
+    process.burstTime = 0;
+    process.waitTime = 0;
     process.turnaroundTime = 0;
     process.times = calloc(MAX_NUM_TIMES, sizeof(int));
     return process;
@@ -192,6 +195,38 @@ void printProcessesInQueue(Queue q, int numProcesses) {
         }
         printf("%d", q.slots[i].times[j]);
         printf("\n");
+    }
+}
+
+/**
+ * Computes the burst time of a process.
+ */
+void computeBurst(Process *process) {
+    int i = 2;
+    while (process->times[i] != process->end) {
+        process->burstTime += process->times[i];
+        i++;
+    }
+}
+
+/**
+ * Computes the wait time of a process.
+ */
+void computeWaitTime(Queue *q, int numProcesses) {
+    int i, j, sum = 0;
+    for (i = 0; i < numProcesses; i++) {
+        sum = 0;
+        if (i > 0) {
+            for (j = 0; j < i; j++) {
+                sum += q->slots[j].burstTime;
+            }
+            sum -= q->slots[i].arrivalTime;
+            q->slots[i].waitTime = sum;
+        }
+        else {
+            q->slots[0].waitTime = 0;
+        }
+        printf("wait time of process %d = %d\n", i, q->slots[i].waitTime);
     }
 }
 
@@ -216,18 +251,15 @@ int doubleSizeOfQueue(Queue *q) {
  */
 void compTurnaroundFCFS(Queue *q, int numProcesses) {
     float average = 0.0;
-    int i, j;
+    int i, j, sum = 0;
     for (i = 0; i < numProcesses; i++) {
-        j = 2;
-        q->slots[i].turnaroundTime -= q->slots[i].arrivalTime;
-        if (i > 0) {
-            q->slots[i].turnaroundTime += q->slots[i-1].turnaroundTime;
-        }
-        while (q->slots[i].times[j] != q->slots[i].end) {
-            q->slots[i].turnaroundTime += q->slots[i].times[j];
-            j++;
-        }
-        printf("Total time of process %d = %d\n", i, q->slots[i].turnaroundTime);
+        computeBurst(&q->slots[i]);
+        printf("burst of %d=%d\n", i, q->slots[i].burstTime);
+    }
+    computeWaitTime(q, numProcesses);
+    for (i = 0; i < numProcesses; i++) {
+        q->slots[i].turnaroundTime = q->slots[i].burstTime + q->slots[i].waitTime;
+        printf("turnaround of %d=%d\n", i, q->slots[i].turnaroundTime);
     }
     for (i = 0; i < numProcesses; i++) {
         average += q->slots[i].turnaroundTime;
@@ -243,7 +275,6 @@ void compTurnaroundFCFS(Queue *q, int numProcesses) {
 void FCFS() {
     char **input;
     int **intArray, numProcesses, i, j;
-    assert(input != NULL);
     input = readInput(&numProcesses);
     intArray = convertStrArr(input, numProcesses);
     Queue queue = initializeQueue(numProcesses, P_DEFAULT); 
