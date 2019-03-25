@@ -246,6 +246,79 @@ int doubleSizeOfQueue(Queue *q) {
 }
 
 /**
+ * Sorts a 2D array based off of priority.
+ */
+int **sort2DArray(int **array, int numProcesses) {
+    printf("SORTING\n");
+    int *copyPriorities = calloc(numProcesses, sizeof(int));
+    assert(copyPriorities != NULL);
+    int *orderArray = calloc(numProcesses, sizeof(int));
+    assert(orderArray != NULL);
+    int i, j, k = 0, l = 0, target, min = array[0][0];
+    for (i = 0; i < numProcesses; i++) {
+        j = 0;
+        while (array[i][j] != -1) {
+            printf("%d ", array[i][j]);
+            j++;
+        }
+        printf("%d\n", array[i][j]);
+    }
+    for (i = 0; i < numProcesses; i++) {
+        copyPriorities[i] = array[i][0];
+    }
+    for (i = 0; i < numProcesses; i++) {
+        min = copyPriorities[i];
+        target = i;
+        for (j = 0; j < numProcesses; j++) {
+            if (min > copyPriorities[j]) {
+                min = copyPriorities[j];
+                target = j;
+            }
+        }
+        copyPriorities[target] = MAX;
+        orderArray[k] = min;
+        k++;
+    }
+    int **sortedArray = calloc(numProcesses, sizeof(int*));
+    assert(sortedArray != NULL);
+    for (i = 0; i < numProcesses; i++) {
+        sortedArray[i] = calloc(BUFFER_SIZE, sizeof(int));
+        assert(sortedArray[i] != NULL);
+    }
+    j = 0;
+    for (i = 0; i < numProcesses; i++) {
+        target = orderArray[i];
+        j = 0;
+        while (array[j][0] != target) {
+            j++;
+        }
+        
+        k = 0;
+        while (array[j][k] != -1) {
+            sortedArray[l][k] = array[j][k];
+            k++;
+        }
+        array[j][0] = MAX;
+        sortedArray[l][k] = -1;
+        l++;
+    }
+    printf("\nPRINTING SORTED ARRAY!\n");
+    for (i = 0; i < numProcesses; i++) {
+        j = 0;
+        while (sortedArray[i][j] != -1) {
+            printf("%d ", sortedArray[i][j]);
+            j++;
+        }
+        printf("%d\n", sortedArray[i][j]);
+    }
+    printf("\n------------------\n");
+    freeIntArray(array, numProcesses);
+    free(copyPriorities);
+    free(orderArray);
+    return sortedArray;
+}
+
+/**
  * Computes average turnaround time for a queue of processes using the 
  * First-come-First-served strategy.
  */
@@ -277,13 +350,12 @@ void FCFS() {
     int **intArray, numProcesses, i, j;
     input = readInput(&numProcesses);
     intArray = convertStrArr(input, numProcesses);
-    Queue queue = initializeQueue(numProcesses, P_DEFAULT); 
-
-    print2dIntArray(intArray, numProcesses);
-    populateQueue(&queue, numProcesses, intArray);
+    int **sortedArray = sort2DArray(intArray, numProcesses);
+    Queue queue = initializeQueue(numProcesses, P_DEFAULT);
+    print2dIntArray(sortedArray, numProcesses);
+    populateQueue(&queue, numProcesses, sortedArray);
     printProcessesInQueue(queue, numProcesses);
     compTurnaroundFCFS(&queue, numProcesses);
-
     freeProcessesInQueue(&queue, numProcesses);
     free(queue.slots);
 }

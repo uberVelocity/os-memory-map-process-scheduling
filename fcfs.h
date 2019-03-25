@@ -11,6 +11,8 @@
 #define P_MEDIUM 2
 #define P_LOW 3
 
+#define MAX 9999
+
 typedef struct Processes {
     int serviceTime;
     int burstTime;
