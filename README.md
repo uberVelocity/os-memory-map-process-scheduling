@@ -20,13 +20,14 @@ Using both algorithms, we are interested of the average turn-around time of the 
 ## First-come-first-served (FCFS)
 FCFS is a non-preemptive algorithm that is usually used in batch systems. Its descriptive name accentuates that the execution of the processes is done based on their arrival time in the queue. As such, for the input given above, even though the second process has a higher priority, process 1 arrives before it, so the processor starts executing process 1 before process 2. Execution is done until the process blocks or finishes. In this simulation, the process never blocks, so the amount of time it runs for is the total sum of processing times.
 ### Implementation
-In order to compute the average turn-around time of all processes, we must first compute the turn-around time of each process. Simply put, the turn-around time of a process is the difference between the time it took for it to finish execution and its arrival time.
+In order to compute the average turn-around time of all processes, we must first compute the turn-around time of each process. Simply put, the turn-around time of a process is the difference between the completion_time and arrival_time
 
 ```
-turn_around_time = waiting_time + burst time
+turn_around_time = completion_time - arrival_time
 ```
+Because it is first come first serve, the queue is populated with the processes given in their ascending order of arrival times. This is done by sorting the 2D array given by stdin according to the processes' arrival time. Should to processes arrive at the same time, the first one appearing in stdin will be taken first.
 
-As such, computing the average turn-around time for this algorithm implies going through the execution times of each process, summing each one per process, and dividing the result by the number of processes. Processes that succeed a process must add the turn-around time of that process to their own turn-around time.
+As such, computing the average turn-around time for this algorithm implies going through the execution times of each process, summing each one per process, and dividing the result by the number of processes.
 
 Example:
 ```
@@ -38,4 +39,4 @@ Example:
 ```
 
 ## Notes
-Assumption is that the input is given in the order of the arrival in the queue (ascending order of first parameter).
+Input processes have to be orderedbased on their arrival time in order to put them into the queue accordingly. Testing cases where given in ascending order of their arrival time, however this may not always be the case.

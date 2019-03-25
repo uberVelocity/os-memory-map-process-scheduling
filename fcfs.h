@@ -14,7 +14,7 @@
 #define MAX 9999
 
 typedef struct Processes {
-    int serviceTime;
+    int completionTime;
     int burstTime;
     int waitTime;
     int turnaroundTime;
@@ -33,6 +33,7 @@ typedef struct Queues {
 }Queue;
 
 void FCFS();
+void computeCompletionTime(Queue *, int);
 void computeWaitTime(Queue *, int);
 void computeBurst(Process *);
 void compTurnaroundTime(Queue *, int);
@@ -50,5 +51,7 @@ char **readInput(int *);
 int doubleSizeOfQueue(Queue *);
 int *convertStringToInt(char *, int*);
 int **convertStrArr(char **, int);
+int **sort2DArray(int **, int);
 Queue initializeQueue(int, int);
 Process initializeProcess();
+Process popElement(Queue *);
