@@ -18,6 +18,9 @@ Queue initializeQueue(int size) {
     q.back = 0;
     q.size = size;
     q.pageFaults = 0;
+    for (int i = 0; i < size; i++) {
+        q.array[i] = -1;
+    }
     return q;
 }
 
@@ -68,15 +71,18 @@ void enqueue(Queue *q, int element) {
 
 }
 
+/**
+ * Reads input from stdin and converts it from string to int.
+ */
 int *convertInput(int *frames, int *inputSize) {
     int i = 0, local;
-    char *charPages = calloc(MAX_REFERENCES, sizeof(char)), *cp;
+    char *charPages = calloc(201, sizeof(char)), *cp;
     assert(charPages != NULL);
     int *final = calloc(MAX_REFERENCES, sizeof(int));
     scanf("%d\n", &local);
     *frames = local;
-    fgets(charPages, 100, stdin);
-    printf("input = %s\n", charPages);
+    fgets(charPages, 201, stdin);
+    // printf("input = %s\n", charPages);
     cp = strtok(charPages, " ");
     while (cp != NULL) {
         final[i] = atoi(cp);
@@ -88,6 +94,9 @@ int *convertInput(int *frames, int *inputSize) {
     return final;
 }
 
+/**
+ * Prints the state of a queue.
+ */
 void printStateOfQueue(Queue *queue) {
     for (int i = 0; i < queue->size; i++) {
         printf("[%d] ", queue->array[i]);
@@ -95,19 +104,106 @@ void printStateOfQueue(Queue *queue) {
     printf("\n");
 }
 
-int main(int argc, char* argv[]) {
+
+/**
+ * Performs the first-in-first-out page-replacement algorithm.
+ */
+void FIFO() {
     int frames, *pages, i = 0, inputSize;
     pages = convertInput(&frames, &inputSize);
     Queue queue = initializeQueue(frames);
 
     for (i = 0; i < inputSize; i++) {
         enqueue(&queue, pages[i]);
-        printStateOfQueue(&queue);
+        // printStateOfQueue(&queue);
     }
 
     printf("page faults = %d\n", queue.pageFaults);
 
     free(pages);
     free(queue.array);
+}
+
+/**
+ * Initializes a circular list.
+ */
+CList initializeCList(int size) {
+    CList clist;
+    clist.array = calloc(size, sizeof(int));
+    clist.secondChances = calloc(size, sizeof(int));
+    clist.pointer = 0;
+    clist.pageFaults = 0;
+    clist.size = size;
+    for (int i = 0; i < size; i++) {
+        clist.array[i] = -1;
+    }
+    return clist;
+}
+
+/**
+ * Checks if a reference is already in the list. If it is, then it
+ * gives it a second chance.
+ */
+int referenceInClist(CList *clist, int element) {
+    for (int i = 0; i < clist->size; i++) {
+        if (clist->array[i] == element) {
+            clist->secondChances[i] = 1;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Prints the state of a circular list.
+ */
+void printStateOfCList(CList *clist) {
+    for (int i = 0; i < clist->size; i++) {
+        printf("[%d] ", clist->array[i]);
+    }
+    printf("\n");
+    printf("P=%d\n", clist->pointer);
+}
+
+void addReference(CList *clist, int element) {
+    if (!referenceInClist(clist, element)) {
+        if (clist->secondChances[clist->pointer] == 0) {
+            clist->array[clist->pointer] = element;
+            if (clist->pointer == clist->size - 1) {
+                clist->pointer = 0;
+            }
+            else {
+                clist->pointer++;
+            }
+            clist->pageFaults++;
+        }
+        else {
+            clist->secondChances[clist->pointer] = 0;
+            if (clist->pointer == clist->size - 1) {
+                clist->pointer = 0;
+            }
+            else {
+                clist->pointer++;
+            }
+            addReference(clist, element);
+        }
+    }
+}
+
+void clock() {
+    int frames, *pages, i, inputSize;
+    pages = convertInput(&frames, &inputSize);
+    CList clist = initializeCList(frames);
+    for (i = 0; i < inputSize; i++) {
+        addReference(&clist, pages[i]);
+    }
+    printf("page faults: %d\n", clist.pageFaults);
+    free(pages);
+    free(clist.array);
+    free(clist.secondChances);
+}
+
+int main(int argc, char* argv[]) {
+    clock();
     return EXIT_SUCCESS;
 }
