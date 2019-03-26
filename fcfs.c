@@ -147,6 +147,24 @@ void insertIntoQueue(Process *p, Queue *q) {
 }
 
 /**
+ * Returns element out of the queue.
+ */
+Process popElement(Queue *queue) {
+    if (queue->front == queue->back) {
+        perror("Queue is empty!\n");
+        abort();
+    }
+    else {
+        Process p = queue->slots[queue->front];
+        for (int i = 0; i < queue->back - 1; i++) {
+            queue->slots[i] = queue->slots[i + 1];
+        }
+        queue->back--;
+        return p;
+    }
+}
+
+/**
  * Initialization of queue of specific size.
  */
 Queue initializeQueue(int size, int priority) {
@@ -174,7 +192,7 @@ void freeProcessesInQueue(Queue *q, int numProcesses) {
  */
 Process initializeProcess() {
     Process process;
-    process.serviceTime = 0;
+    process.completionTime = 0;
     process.burstTime = 0;
     process.waitTime = 0;
     process.turnaroundTime = 0;
@@ -221,7 +239,12 @@ void computeWaitTime(Queue *q, int numProcesses) {
                 sum += q->slots[j].burstTime;
             }
             sum -= q->slots[i].arrivalTime;
-            q->slots[i].waitTime = sum;
+            if (sum < 0) {
+                q->slots[i].waitTime = 0;
+            }
+            else {
+                q->slots[i].waitTime = sum;
+            }
         }
         else {
             q->slots[0].waitTime = 0;
@@ -246,8 +269,84 @@ int doubleSizeOfQueue(Queue *q) {
 }
 
 /**
+ * Sorts a 2D array based off of priority.
+ */
+int **sort2DArray(int **array, int numProcesses) {
+    int *copyPriorities = calloc(numProcesses, sizeof(int));
+    assert(copyPriorities != NULL);
+    int *orderArray = calloc(numProcesses, sizeof(int));
+    assert(orderArray != NULL);
+    int i, j, k = 0, l = 0, target, min = array[0][0];
+    for (i = 0; i < numProcesses; i++) {
+        copyPriorities[i] = array[i][0];
+    }
+    for (i = 0; i < numProcesses; i++) {
+        min = copyPriorities[i];
+        target = i;
+        for (j = 0; j < numProcesses; j++) {
+            if (min > copyPriorities[j]) {
+                min = copyPriorities[j];
+                target = j;
+            }
+        }
+        copyPriorities[target] = MAX;
+        orderArray[k] = min;
+        k++;
+    }
+    int **sortedArray = calloc(numProcesses, sizeof(int*));
+    assert(sortedArray != NULL);
+    for (i = 0; i < numProcesses; i++) {
+        sortedArray[i] = calloc(BUFFER_SIZE, sizeof(int));
+        assert(sortedArray[i] != NULL);
+    }
+    j = 0;
+    for (i = 0; i < numProcesses; i++) {
+        target = orderArray[i];
+        j = 0;
+        while (array[j][0] != target) {
+            j++;
+        }
+        
+        k = 0;
+        while (array[j][k] != -1) {
+            sortedArray[l][k] = array[j][k];
+            k++;
+        }
+        array[j][0] = MAX;
+        sortedArray[l][k] = -1;
+        l++;
+    }
+    freeIntArray(array, numProcesses);
+    free(copyPriorities);
+    free(orderArray);
+    return sortedArray;
+}
+
+/**
+ * Completion time is the global time at 
+ * which the process terminates.
+ */
+void computeCompletionTime(Queue *queue, int numProcesses) {
+    int i;
+    queue->slots[0].completionTime = queue->slots[0].burstTime + queue->slots[0].arrivalTime;
+    printf("completion of 0 = %d\n", queue->slots[0].completionTime);
+    for (i = 1; i < numProcesses; i++) {
+        if (queue->slots[i].arrivalTime > queue->slots[i-1].completionTime) {
+            queue->slots[i].completionTime = queue->slots[i].arrivalTime + queue->slots[i].burstTime;
+        }
+        else {
+            queue->slots[i].completionTime = queue->slots[i].burstTime + queue->slots[i - 1].completionTime;
+        }
+        printf("completion of %d = %d\n", i, queue->slots[i].completionTime);
+    }
+}
+
+/**
  * Computes average turnaround time for a queue of processes using the 
- * First-come-First-served strategy.
+ * First-come-First-served strategy. Because processes in queue are in\
+ * sorted order, we can for-through the queue from 0 until the number
+ * of processes - no dequeue-ing required.
+ * 
  */
 void compTurnaroundFCFS(Queue *q, int numProcesses) {
     float average = 0.0;
@@ -256,9 +355,10 @@ void compTurnaroundFCFS(Queue *q, int numProcesses) {
         computeBurst(&q->slots[i]);
         printf("burst of %d=%d\n", i, q->slots[i].burstTime);
     }
+    computeCompletionTime(q, numProcesses);
     computeWaitTime(q, numProcesses);
     for (i = 0; i < numProcesses; i++) {
-        q->slots[i].turnaroundTime = q->slots[i].burstTime + q->slots[i].waitTime;
+        q->slots[i].turnaroundTime = q->slots[i].completionTime - q->slots[i].arrivalTime;
         printf("turnaround of %d=%d\n", i, q->slots[i].turnaroundTime);
     }
     for (i = 0; i < numProcesses; i++) {
@@ -277,13 +377,12 @@ void FCFS() {
     int **intArray, numProcesses, i, j;
     input = readInput(&numProcesses);
     intArray = convertStrArr(input, numProcesses);
-    Queue queue = initializeQueue(numProcesses, P_DEFAULT); 
-
-    print2dIntArray(intArray, numProcesses);
-    populateQueue(&queue, numProcesses, intArray);
+    int **sortedArray = sort2DArray(intArray, numProcesses);
+    Queue queue = initializeQueue(numProcesses, P_DEFAULT);
+    // print2dIntArray(sortedArray, numProcesses);
+    populateQueue(&queue, numProcesses, sortedArray);
     printProcessesInQueue(queue, numProcesses);
     compTurnaroundFCFS(&queue, numProcesses);
-
     freeProcessesInQueue(&queue, numProcesses);
     free(queue.slots);
 }
