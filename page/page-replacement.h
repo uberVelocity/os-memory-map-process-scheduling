@@ -9,3 +9,11 @@ typedef struct Queues {
     int size;
     int pageFaults;
 }Queue;
+
+typedef struct CircularLists {
+    int *array;
+    int *secondChances;
+    int pointer;
+    int size;
+    int pageFaults;
+}CList;
