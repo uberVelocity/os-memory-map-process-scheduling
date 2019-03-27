@@ -14,9 +14,13 @@
 #define MAX 9999
 
 typedef struct Processes {
+    int id;
+    int pointer;
+    int finished;
     int completionTime;
     int burstTime;
     int waitTime;
+    int originalArrivalTime;
     int turnaroundTime;
     int arrivalTime;
     int priority;
@@ -28,6 +32,7 @@ typedef struct Queues {
     int priority;   // 0 - DEFAULT, 1 - HIGH, 2 - MEDIUM, 3 - LOW.
     int size;
     int front;
+    int time;
     int back;
     Process *slots;
 }Queue;
@@ -36,7 +41,9 @@ void FCFS();
 void computeCompletionTime(Queue *, int);
 void computeWaitTime(Queue *, int);
 void computeBurst(Process *);
+void printAverage(Queue *, int);
 void compTurnaroundTime(Queue *, int);
+void checkIfEntered(Queue *, int);
 void freeProcessesInQueue(Queue *, int);
 void removeNewline(char **, int);
 void populateQueue(Queue *, int, int **);
@@ -46,8 +53,11 @@ void resizeBuffer(char **, int *);
 void freeStrArray(char **, int);
 void freeIntArray(int **, int);
 void print2dIntArray(int **, int);
+void printAllProcessStats(Queue *, int);
+void printProcessStats(Process);
 void printProcessesInQueue(Queue, int);
 char **readInput(int *);
+int processesHaveFinished(Queue *, int);
 int doubleSizeOfQueue(Queue *);
 int *convertStringToInt(char *, int*);
 int **convertStrArr(char **, int);

@@ -119,7 +119,6 @@ int doubleSizeOfQueue(Queue *q) {
 Process initializeProcess(int id) {
     Process process;
     process.id = id;
-    process.entered = 0;
     process.finished = 0;
     process.completionTime = 0;
     process.burstTime = 0;
@@ -216,6 +215,7 @@ Queue initializeQueue(int size, int priority) {
     Queue q;
     q.priority = priority;
     q.size = size;
+    q.time = 0;
     q.front = 0;
     q.back = 0;
     q.slots = malloc(size * sizeof(Process));
@@ -236,7 +236,6 @@ void populateProcess(Process *process, int *values) {
     process->times[i] = values[i + 2];
     printf("%d\n", process->times[i]);
     process->arrivalTime = values[0];
-    process->x = process->arrivalTime;
     process->priority = values[1];
     process->end = values[i + 2];
     process->times = realloc(process->times, (i+1) * sizeof(int));
@@ -289,6 +288,7 @@ void populateProcessesIntoQueue(Queue *queue, int **sortedArray, int numProcesse
     for (i = 0; i < numProcesses; i++) {
         Process process = initializeProcess(i);
         populateProcess(&process, sortedArray[i]);
+        process.originalArrivalTime = process.arrivalTime;
         insertIntoQueue(&process, queue);
     }
     freeIntArray(sortedArray, numProcesses);
@@ -307,98 +307,12 @@ void printAllProcessStats(Queue *q, int numProcesses) {
 }
 
 /**
- * Returns the id of a process with minimal x which denotes which process should go
- * next.
- */
-int returnIdOfMinimalProcess(Queue *q, int numProcesses) {
-    int i, min = 999999, id = -1;
-    for (i = 0; i < numProcesses; i++) {
-        if (min > q->slots[i].x) {
-            min = q->slots[i].x;
-            id = q->slots[i].id;
-        }
-    }
-    return id;
-}
-
-/**
- * Updates the completion times and x times of all processes.
- */
-void updateCompletionTimes(Queue *queue, int numProcesses, int idMin) {
-    int i;
-    for (i = 0; i < numProcesses; i++) {
-        if (i != idMin) {
-            queue->slots[i].x -= queue->slots[idMin].x;
-        }
-    }
-}
-
-/**
- * Checks if a process has entered the system.
- */
-void checkIfEntered(Queue *queue, int numProcesses) {
-    int i;
-    for (i = 0; i < numProcesses; i++) {
-        if (queue->slots[i].x <= 0) {
-            queue->slots[i].entered = 1;
-        }
-    }
-}
-
-/**
- * Simulates the processor doing operations on the process that's first
- * in the Queue.
- */
-void executeProcess(Queue *queue, int numProcesses, int idMin) {
-    int i;
-    // printf("IDMIN = %d\n", idMin);
-    printf("POINTER AT %d\n", queue->slots[idMin].pointer);
-    printf("VALUE: %d\n", queue->slots[idMin].times[queue->slots[idMin].pointer]);
-    for (i = 0; i < numProcesses; i++) {
-        if (i != idMin) {
-            printf("I AM %d and IDMIN IS %d\n", i, idMin);
-            printf("POINTER OF MIN = %d\n", queue->slots[idMin].pointer);
-            // Check if it is a process operation or I/O. % 2 == 0 -> CPU else I/O.
-            if (queue->slots[idMin].pointer % 2 == 0) {
-                printf("HERE\n");
-                queue->slots[i].x -= queue->slots[idMin].times[queue->slots[idMin].pointer];
-                if (queue->slots[i].entered == 1 && queue->slots[i].finished == 0) {
-                    queue->slots[i].completionTime += queue->slots[idMin].times[queue->slots[idMin].pointer];
-                }
-            }
-            else {
-                queue->slots[idMin].x += queue->slots[idMin].times[queue->slots[idMin].pointer];
-            }
-            queue->slots[idMin].pointer++;
-        }
-    }
-}
-
-/**
- * Compute turn-around using FCFS.
- */
-void FCFS(Queue *queue, int numProcesses) {
-    int idMin;
-    while (!processesHaveFinished(queue, numProcesses)) {
-        checkIfEntered(queue, numProcesses);
-        idMin = returnIdOfMinimalProcess(queue, numProcesses);
-        printf("--- IDMIN = %d --- \n", idMin);
-        updateCompletionTimes(queue, numProcesses, idMin);
-        executeProcess(queue, numProcesses, idMin);
-        printAllProcessStats(queue, numProcesses);
-        queue->slots[idMin].completionTime += queue->slots[idMin].times[queue->slots[idMin].pointer];
-        queue->slots[idMin].x = 0;
-        // queue->slots[idMin].x += queue->slots[idMin].times[queue->slots[idMin].pointer];
-    }
-}
-
-/**
  * Checks whether all pointers are at -1 (all processes have finished).
  */
 int processesHaveFinished(Queue *q, int numProcesses) {
     int i;
     for (i = 0; i < numProcesses; i++) {
-        if (q->slots[i].times[q->slots[i].pointer] != -1) {
+        if (q->slots[i].finished != 1) {
             return 0;
         }
     }
@@ -411,7 +325,6 @@ int processesHaveFinished(Queue *q, int numProcesses) {
 void printProcessStats(Process p) {
     printf("id:%d\n", p.id);
     printf("arrival:%d\n", p.arrivalTime);
-    printf("x:%d\n", p.x);
     printf("completion:%d\n", p.completionTime);
     printf("priority:%d\n", p.priority);
     printf("end:%d\n", p.end);
@@ -432,6 +345,70 @@ void printProcessTimes(Queue *queue, int numProcesses) {
     }
 }
 
+int returnIdOfMinArrivalTime(Queue *queue, int numProcesses) {
+    int id = -1, i, min = MAX;
+    for (i = numProcesses - 1; i >= 0; i--) {
+        if (!queue->slots[i].finished && min > queue->slots[i].arrivalTime) {
+            min = queue->slots[i].arrivalTime;
+            id = queue->slots[i].id;
+        }
+    }
+    return id;
+}
+
+void printAverage(Queue *queue, int numProcesses) {
+    int i;
+    float average = 0.0;
+    for (i = 0; i < numProcesses; i++) {
+        average += queue->slots[i].turnaroundTime;
+    }
+    average /= numProcesses;
+    printf("average turnaround = %.2lf\n", average);
+}
+
+void printTurnarounds(Queue *queue, int numProcesses) {
+    int i;
+    for (i = 0; i < numProcesses; i++) {
+        printf("turnaround of %d = %d\n", i, queue->slots[i].turnaroundTime);
+    }
+}
+
+void printTable(Queue *queue, int numProcesses) {
+    int i;
+    for (i = 0; i < numProcesses; i++) {
+        printf("ID:%d\tAT:%d\tCT:%d\tTIME:%d\n", queue->slots[i].id, queue->slots[i].arrivalTime, queue->slots[i].completionTime, queue->time);
+    }
+    printf("\n-------\n");
+}
+
+void FCFS(Queue *queue, int numProcesses) {
+    int i, j, minArrivalTimeId;
+    while (!processesHaveFinished(queue, numProcesses)) {
+        minArrivalTimeId = returnIdOfMinArrivalTime(queue, numProcesses);
+        if (queue->time < queue->slots[minArrivalTimeId].arrivalTime) {
+            queue->time = queue->slots[minArrivalTimeId].arrivalTime;
+        }
+        queue->time += queue->slots[minArrivalTimeId].times[queue->slots[minArrivalTimeId].pointer];
+        queue->slots[minArrivalTimeId].pointer++;
+        if (queue->slots[minArrivalTimeId].times[queue->slots[minArrivalTimeId].pointer] == -1) {
+            queue->slots[minArrivalTimeId].finished = 1;
+            queue->slots[minArrivalTimeId].completionTime = queue->time;
+            queue->slots[minArrivalTimeId].turnaroundTime = queue->slots[minArrivalTimeId].completionTime - queue->slots[minArrivalTimeId].originalArrivalTime;
+        }
+        if (queue->slots[minArrivalTimeId].finished != 1) {
+            queue->slots[minArrivalTimeId].arrivalTime = queue->time + queue->slots[minArrivalTimeId].times[queue->slots[minArrivalTimeId].pointer];
+            queue->slots[minArrivalTimeId].pointer++;
+            if (queue->slots[minArrivalTimeId].times[queue->slots[minArrivalTimeId].pointer] == -1) {
+                queue->slots[minArrivalTimeId].finished = 1;
+                queue->slots[minArrivalTimeId].completionTime = queue->time;
+                queue->slots[minArrivalTimeId].turnaroundTime = queue->slots[minArrivalTimeId].completionTime - queue->slots[minArrivalTimeId].originalArrivalTime;
+            }
+        }
+        printTable(queue, numProcesses);
+    }
+    printTurnarounds(queue, numProcesses);
+    printAverage(queue, numProcesses);
+}
 
 int main(int argc, char* argv[]) {
     char **input;
@@ -445,7 +422,7 @@ int main(int argc, char* argv[]) {
     printProcessTimes(&queue, numProcesses);
     printAllProcessStats(&queue, numProcesses);
     FCFS(&queue, numProcesses);
-    printAllProcessStats(&queue, numProcesses);
+    // printAllProcessStats(&queue, numProcesses);
 
     freeProcessesInQueue(&queue, numProcesses);
     free(queue.slots);
