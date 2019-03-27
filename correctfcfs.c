@@ -120,6 +120,7 @@ Process initializeProcess(int id) {
     Process process;
     process.id = id;
     process.entered = 0;
+    process.finished = 0;
     process.completionTime = 0;
     process.burstTime = 0;
     process.waitTime = 0;
@@ -227,15 +228,17 @@ Queue initializeQueue(int size, int priority) {
  */
 void populateProcess(Process *process, int *values) {
     int i = 0;
-    while (values[i] != -1) {
-        process->times[i] = values[i];
+    while (values[i + 2] != -1) {
+        process->times[i] = values[i + 2];
+        printf("%d ", process->times[i]);
         i++;
     }
-    process->times[i] = values[i];
+    process->times[i] = values[i + 2];
+    printf("%d\n", process->times[i]);
     process->arrivalTime = values[0];
     process->x = process->arrivalTime;
     process->priority = values[1];
-    process->end = values[i];
+    process->end = values[i + 2];
     process->times = realloc(process->times, (i+1) * sizeof(int));
 }
 
@@ -308,13 +311,14 @@ void printAllProcessStats(Queue *q, int numProcesses) {
  * next.
  */
 int returnIdOfMinimalProcess(Queue *q, int numProcesses) {
-    int i, min = -999;
-    for (i = 1; i < numProcesses; i++) {
-        if (min > q->slots[i].x && q->slots[i].times[q->slots[i].pointer] != -1) {
-            min = q->slots[i].id;
+    int i, min = 999999, id = -1;
+    for (i = 0; i < numProcesses; i++) {
+        if (min > q->slots[i].x) {
+            min = q->slots[i].x;
+            id = q->slots[i].id;
         }
     }
-    return min;
+    return id;
 }
 
 /**
@@ -324,9 +328,6 @@ void updateCompletionTimes(Queue *queue, int numProcesses, int idMin) {
     int i;
     for (i = 0; i < numProcesses; i++) {
         if (i != idMin) {
-            if (queue->slots[i].entered) {
-                queue->slots[i].completionTime += queue->slots[idMin].x;
-            }
             queue->slots[i].x -= queue->slots[idMin].x;
         }
     }
@@ -345,16 +346,49 @@ void checkIfEntered(Queue *queue, int numProcesses) {
 }
 
 /**
+ * Simulates the processor doing operations on the process that's first
+ * in the Queue.
+ */
+void executeProcess(Queue *queue, int numProcesses, int idMin) {
+    int i;
+    // printf("IDMIN = %d\n", idMin);
+    printf("POINTER AT %d\n", queue->slots[idMin].pointer);
+    printf("VALUE: %d\n", queue->slots[idMin].times[queue->slots[idMin].pointer]);
+    for (i = 0; i < numProcesses; i++) {
+        if (i != idMin) {
+            printf("I AM %d and IDMIN IS %d\n", i, idMin);
+            printf("POINTER OF MIN = %d\n", queue->slots[idMin].pointer);
+            // Check if it is a process operation or I/O. % 2 == 0 -> CPU else I/O.
+            if (queue->slots[idMin].pointer % 2 == 0) {
+                printf("HERE\n");
+                queue->slots[i].x -= queue->slots[idMin].times[queue->slots[idMin].pointer];
+                if (queue->slots[i].entered == 1 && queue->slots[i].finished == 0) {
+                    queue->slots[i].completionTime += queue->slots[idMin].times[queue->slots[idMin].pointer];
+                }
+            }
+            else {
+                queue->slots[idMin].x += queue->slots[idMin].times[queue->slots[idMin].pointer];
+            }
+            queue->slots[idMin].pointer++;
+        }
+    }
+}
+
+/**
  * Compute turn-around using FCFS.
  */
 void FCFS(Queue *queue, int numProcesses) {
     int idMin;
     while (!processesHaveFinished(queue, numProcesses)) {
-        checkIfArrived(queue, numProcesses);
+        checkIfEntered(queue, numProcesses);
         idMin = returnIdOfMinimalProcess(queue, numProcesses);
+        printf("--- IDMIN = %d --- \n", idMin);
         updateCompletionTimes(queue, numProcesses, idMin);
+        executeProcess(queue, numProcesses, idMin);
         printAllProcessStats(queue, numProcesses);
+        queue->slots[idMin].completionTime += queue->slots[idMin].times[queue->slots[idMin].pointer];
         queue->slots[idMin].x = 0;
+        // queue->slots[idMin].x += queue->slots[idMin].times[queue->slots[idMin].pointer];
     }
 }
 
@@ -364,7 +398,7 @@ void FCFS(Queue *queue, int numProcesses) {
 int processesHaveFinished(Queue *q, int numProcesses) {
     int i;
     for (i = 0; i < numProcesses; i++) {
-        if (q->slots[i].pointer != -1) {
+        if (q->slots[i].times[q->slots[i].pointer] != -1) {
             return 0;
         }
     }
@@ -378,9 +412,26 @@ void printProcessStats(Process p) {
     printf("id:%d\n", p.id);
     printf("arrival:%d\n", p.arrivalTime);
     printf("x:%d\n", p.x);
+    printf("completion:%d\n", p.completionTime);
     printf("priority:%d\n", p.priority);
     printf("end:%d\n", p.end);
+    
 }
+
+void printProcessTimes(Queue *queue, int numProcesses) {
+    int i;
+    for (i = 0; i < numProcesses; i++) {
+        int j = 0;
+        printf("process:%d\n", i);
+        while (queue->slots[i].times[j] != -1) {
+            printf("%d ", queue->slots[i].times[j]);
+            j++;
+        }
+        printf("%d", queue->slots[i].times[j]);
+        printf("\n");
+    }
+}
+
 
 int main(int argc, char* argv[]) {
     char **input;
@@ -391,6 +442,9 @@ int main(int argc, char* argv[]) {
     Queue queue = initializeQueue(numProcesses, P_DEFAULT);
     populateProcessesIntoQueue(&queue, sortedArray, numProcesses);
     printProcessesInQueue(queue, numProcesses);
+    printProcessTimes(&queue, numProcesses);
+    printAllProcessStats(&queue, numProcesses);
+    FCFS(&queue, numProcesses);
     printAllProcessStats(&queue, numProcesses);
 
     freeProcessesInQueue(&queue, numProcesses);
