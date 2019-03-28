@@ -17,3 +17,16 @@ typedef struct CircularLists {
     int size;
     int pageFaults;
 }CList;
+
+void clock(int);
+void FIFO(int);
+void printStateOfQueue(Queue *);
+void addReference(CList *, int);
+void printStateOfCList(CList *);
+void enqueue(Queue *, int);
+void replaceFirstPage(Queue *, int);
+int referenceInClist(CList *, int);
+int elementInQueue(Queue *, int);
+int *convertInput(int *, int *);
+CList initializeCList(int);
+Queue initializeQueue(int);
