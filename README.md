@@ -58,10 +58,14 @@ In the FIFO page-replacement algorithm, the operating system maintiains a list o
 The input defines the amount of frames the operating system may use as well as a string of numbers representing references to pages. The program must compute the number of page faults that occur given a configuration of frames and references.
 
 Example of input in which 4 frames are used to reference a list of pages:
+
+`Input:`
 ```
 4
 1 2 3 4 7 2 5 2 3 1 7 6 4
 ```
+`Output: page faults = 12`.
+
 The FIFO page-replacement algorithm can be easily implemented using a queue. The queue is implemented using an array. A page-fault occurs when a page that is not present in the queue gets referenced. When a page-fault occurs, the operating system must insert the page which has just been referenced into a frame. If the queue is full, the head of the queue is removed, every element is shifted one position in the queue, and the referenced page is placed at the tail of the queue. If the queue is not full (i.e. there are unused frames), the referenced page is simply inserted into the next-available frame.
 
 For the input given above, the queue will undergo the following states ('-1' signifies an empty frame, '*' signifies a page fault):
@@ -79,4 +83,42 @@ For the input given above, the queue will undergo the following states ('-1' sig
 [2] [3] [1] [7] *
 [3] [1] [7] [6] *
 [1] [7] [6] [4] *
+```
+
+## Clock
+The clock algorithm is based off of the *Second chance* page-replacement algorithm which aims at reducing the amount of useful pages being thrown away for no good reason. In order to understand the clock algorithm, second chance needs to be introduced.
+
+In the second-chance algorithm, each pages has a bit which acts like an extra life. When the operating system encounters a reference which is not in a frame, it inspects the R bit of the oldest page. If it is 0, the page is evicted from the frame, the list gets shifted, and the new
+referenced page gets inserted. If it is 1, the bit is set to 0 and the next oldest page is inspected. The bit of a page is set to 1 when that page is referenced while the page is in a frame.
+
+Second chance attempts at avoiding the removal of useful pages. However, it does unnecessary shifts every time a page fault occurs which is inefficient. The clock algorithm makes use of a pointer to the oldest page. When a page fault occurs, that page's R bit is inspected. If it is 0, the page is evicted and the newly referenced page is inserted in its place. Otherwise, the bit is cleared and the next oldest page is inspected until the newly referenced page has been added into a frame. Similarly to second chance, the bit of a page becomes 1 when the referenced page already exists within a frame.
+
+### Implementation
+A circular list makes for an clean implementation of the clock algorithm. The list has a pointer which initially starts at the oldest page of the list and which gets incremented when a new page needs to be inserted. Whenever a reference is given, the operating system checks whether the bit of the page found at the location of the pointer is 0. If it is, the newly referenced page gets inserted in its place in the array and the pointer gets incremented. If it is not, the bit of the pointed page becomes 0, the pointer gets incremented, and the process repeats until the page is inserted in the array. When the pointer reaches the end of the array, it resets itself at the beginning of the array. Since the problem description specifies the maximum number of frames and the maximum number of pages the input may have, resizing functions of the data structures have not been included in this exercise.
+
+When comparing the clock algorithm to FIFO, we find that it yields a lower number of page-faults.
+
+`Input:`
+```
+4
+1 2 3 4 7 2 5 2 3 1 7 6 4
+```
+
+`Output: page faults = 11`
+
+The transition states of the queue for the aforementioned input ('-1' signifies an empty frame, '*' signifies a page fault):
+```
+[1] [-1] [-1] [-1] 
+[1] [2] [-1] [-1] 
+[1] [2] [3] [-1] 
+[1] [2] [3] [4] 
+[7] [2] [3] [4] 
+[7] [2] [3] [4] 
+[7] [2] [5] [4] 
+[7] [2] [5] [4] 
+[7] [2] [5] [3] 
+[1] [2] [5] [3] 
+[1] [2] [7] [3] 
+[1] [2] [7] [6] 
+[4] [2] [7] [6]
 ```
