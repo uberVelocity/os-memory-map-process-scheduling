@@ -1,7 +1,7 @@
 # Operating Systems Lab 3: Scheduling and page replacement
 # Scheduling
 ## Problem description
-The task of this assignment is to implement virtual process schedulers using two algorithms: FCFS (First Come First Served - non-preemptive) and Round-Robin (pre-emptive).
+The task of this exercise is to implement virtual process schedulers using two algorithms: FCFS (First Come First Served - non-preemptive) and Round-Robin (pre-emptive).
 
 A **non-preemptive** algorithm allows a process to run until it blocks (either on I/O or waiting for another process) or voluntarily releases the CPU. A **preemptive** algorithm picks a process and lets it run for a fixed amount of time, often called a **quantum**. In this exercise, the quantum is set  to ```10ms```. Both algorithms make use of queues in which they are stored.
 
@@ -20,6 +20,7 @@ Using both algorithms, we are interested in the average turn-around time of the 
 
 ## First-come-first-served (FCFS)
 FCFS is a non-preemptive algorithm that is usually used in batch systems. Its descriptive name accentuates that the execution of the processes is done based on their arrival time in the queue, regadless of any priority. As such, for the input given above, even though the second process has a higher priority, the first process arrives before it, so the processor starts executing the first process before executing the second process. Execution is done until the process blocks or finishes. In this simulation, the only form of blocking is initiated by I/O. Whenever the processor finished a burst of CPU time from a processor, it can either encounter a block in the form of I/O or the end of the process. If the process has finished its execution, the completion time is defined for that specific process and the turnaround time is computed by subtracting the arrival time from the completion time. If the process has to do I/O, the processor computes the new arrival time of the process by adding its I/O time to the global time of the system.
+
 ### Implementation
 In order to compute the average turn-around time of all processes, we must first compute the turn-around time of each process. Simply put, the turn-around time of a process is the difference between completion time and arrival time.
 
@@ -28,9 +29,9 @@ turn_around_time = completion_time - arrival_time
 ```
 Because it is first come first serve, the queue is populated with the processes given in their ascending order of arrival times. In order to store the processes based on their arrival times, a priority queue has been built in which the next process is chosen based on its arrival time. The arrival time of a process is given by stdin, however its new arrival time is computed and set by adding the global time of the system to the process' I/O time. The priority queue has an internal clock, referred to as ```time``` in the code, which keeps track of how much time has elapsed since the beginning of the simulation. Every time the processor needs to do a context switch, it takes the process which has the next minimal arrival time. The clock is updated by adding the burst time of the process to it. If the new arrival time is lower than the current time when the processor needs to do a context switch, the time remains the same. Otherwise, if the next minimal new arrival time of process is higher than the current time, the current time becomes the new arrival time of that process.
 
-Should two processes arrive at the same time, the fisrt one in the priority queue is taken.
+Should two processes arrive at the same time, the first one in the priority queue is taken.
 
-As such, computing the average turn-around time for this algorithm implies going through the execution times of each process, summing each one per process, and dividing the result by the number of processes.
+As such, computing the average turn-around time for this algorithm implies going through the turn-around times of each process, summing each one per process, and dividing the result by the number of processes.
 
 Example:
 ```
@@ -40,8 +41,42 @@ Example:
 3 0 2 -1
 ```
 
-## Notes
-Input processes have to be orderedbased on their arrival time in order to put them into the queue accordingly. Testing cases where given in ascending order of their arrival time, however this may not always be the case.
+### Demo mode
+The program can be run with the ```demo``` flag, showcasing the statistics of each process after each context switch - useful when debugging or as a general wonderment.
+```bash
+valgrind ./fcfs demo < input.in
+```
 
 # Page-replacement
 ## Problem description
+The task of this exercise is to implement two page-replacement algorithms: The First-In, First-Out (FIFO) page-replacement algorithm and The Clock page-replacement algorithm. For both algorithms a demo mode is available showcasing the state of the queue during transitions between each reference. One can run the demo by running the program with the `demo` flag (`./page demo`).
+
+## First-In, First-out (FIFO)
+In the FIFO page-replacement algorithm, the operating system maintiains a list of all pages that are currently in memory. The order in which they are stored is based on the order in which they are initially stored, with newer pages appearing at the tail of the list, while older pages residing at the head of the list. Whenever a page fault occurs and there are no available frames, the oldest page in the list gets removed and the new page gets appended at the tail of the list. One drawback of this approach is the fact that old pages may still be useful and removing one such page may not be beneficial.
+
+### Implementation
+The input defines the amount of frames the operating system may use as well as a string of numbers representing references to pages. The program must compute the number of page faults that occur given a configuration of frames and references.
+
+Example of input in which 4 frames are used to reference a list of pages:
+```
+4
+1 2 3 4 7 2 5 2 3 1 7 6 4
+```
+The FIFO page-replacement algorithm can be easily implemented using a queue. The queue is implemented using an array. A page-fault occurs when a page that is not present in the queue gets referenced. When a page-fault occurs, the operating system must insert the page which has just been referenced into a frame. If the queue is full, the head of the queue is removed, every element is shifted one position in the queue, and the referenced page is placed at the tail of the queue. If the queue is not full (i.e. there are unused frames), the referenced page is simply inserted into the next-available frame.
+
+For the input given above, the queue will undergo the following states ('-1' signifies an empty frame, '*' signifies a page fault):
+```
+[1] [-1] [-1] [-1] *
+[1] [2] [-1] [-1] *
+[1] [2] [3] [-1] *
+[1] [2] [3] [4] *
+[2] [3] [4] [7] *
+[2] [3] [4] [7] 
+[3] [4] [7] [5] *
+[4] [7] [5] [2] *
+[7] [5] [2] [3] *
+[5] [2] [3] [1] *
+[2] [3] [1] [7] *
+[3] [1] [7] [6] *
+[1] [7] [6] [4] *
+```
