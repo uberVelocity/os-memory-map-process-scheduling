@@ -42,7 +42,6 @@ void replaceFirstPage(Queue *q, int element) {
  */
 int elementInQueue(Queue *q, int element) {
     for (int i = 0; i < q->size; i++) {
-        // printf("comparing %d with element %d\n", q->array[i], element);
         if (element == q->array[i]) {
             return 1;
         }
@@ -55,9 +54,7 @@ int elementInQueue(Queue *q, int element) {
  * is in queue then it does not enqueue it.
  */
 void enqueue(Queue *q, int element) {
-    // printf("Attempting to enqueue: %d\n", element);
     if (!elementInQueue(q, element)) {
-        // printf("element %d is not in queue\n", element);
         if (q->size == q->back) {
             replaceFirstPage(q, element);
         }
@@ -68,7 +65,6 @@ void enqueue(Queue *q, int element) {
         q->pageFaults++;
     }
     // Nothing happens if element is already in the queue
-
 }
 
 /**
@@ -82,7 +78,6 @@ int *convertInput(int *frames, int *inputSize) {
     scanf("%d\n", &local);
     *frames = local;
     fgets(charPages, 201, stdin);
-    // printf("input = %s\n", charPages);
     cp = strtok(charPages, " ");
     while (cp != NULL) {
         final[i] = atoi(cp);
@@ -104,18 +99,17 @@ void printStateOfQueue(Queue *queue) {
     printf("\n");
 }
 
-
 /**
- * Performs the first-in-first-out page-replacement algorithm.
+ * Implements the first-in-first-out page-replacement algorithm.
  */
-void FIFO() {
+void FIFO(int demo_mode) {
     int frames, *pages, i = 0, inputSize;
     pages = convertInput(&frames, &inputSize);
     Queue queue = initializeQueue(frames);
 
     for (i = 0; i < inputSize; i++) {
         enqueue(&queue, pages[i]);
-        // printStateOfQueue(&queue);
+        if (demo_mode)  printStateOfQueue(&queue);
     }
 
     printf("page faults = %d\n", queue.pageFaults);
@@ -162,9 +156,12 @@ void printStateOfCList(CList *clist) {
         printf("[%d] ", clist->array[i]);
     }
     printf("\n");
-    printf("P=%d\n", clist->pointer);
+    // printf("P=%d\n", clist->pointer);
 }
 
+/**
+ * Inserts a reference into a circular list.
+ */
 void addReference(CList *clist, int element) {
     if (!referenceInClist(clist, element)) {
         if (clist->secondChances[clist->pointer] == 0) {
@@ -190,12 +187,16 @@ void addReference(CList *clist, int element) {
     }
 }
 
-void clock() {
+/**
+ * Implements the clock page-replacement algorithm.
+ */
+void clock(int demo_mode) {
     int frames, *pages, i, inputSize;
     pages = convertInput(&frames, &inputSize);
     CList clist = initializeCList(frames);
     for (i = 0; i < inputSize; i++) {
         addReference(&clist, pages[i]);
+        if (demo_mode)  printStateOfCList(&clist);
     }
     printf("page faults: %d\n", clist.pageFaults);
     free(pages);
@@ -204,6 +205,10 @@ void clock() {
 }
 
 int main(int argc, char* argv[]) {
-    clock();
+    int demo_mode = 0;
+    if (argv[1] != NULL && strcmp(argv[1], "demo") == 0) {
+        demo_mode = 1;
+    }
+    clock(demo_mode);
     return EXIT_SUCCESS;
 }
