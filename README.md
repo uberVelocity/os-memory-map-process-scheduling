@@ -46,6 +46,37 @@ The program can be run with the ```demo``` flag, showcasing the statistics of ea
 ```bash
 valgrind ./fcfs demo < input.in
 ```
+## Round-Robin with priority scheduling
+Round-robin is an attempt at making the system fair in regards to how much attention the processor gives to each process. It is a preemptive algorithm in which each process is assigned a time interval called `quantum` which defines the amount of the it is allowed to run. In this exercise, the `quantum` is fixed at 10ms for all processes. When a process blocks before its `quantum` has finished, the CPU context switches to the next runnable process in the list. This type of algorithm assumes that all processes are equal. In a real system, certain processes are more important than others, so significance needs to be taken into account when deciding which process to run next.
+
+Priority scheduling assigns each process a priority. The processor then chooses the runnable process with the highest priority. The book describes that it is convenient to group processes into priority classes and use priority scheduling among the classes but round-robin scheduling within each class. This is the implementation that we have opted for.
+
+An easier implementation, however a less efficient one, is to firstly run in a Round-Robin fashion all of the processes in the highest priority queue until all of them have finished, then move on to the next-highest priority queue.
+This approach is highly innefficient as the processor would be idle when other processes could be worked on.
+
+Suppose there are only two processes that arrive at the same time, one with priority 1 that has 30ms CPU time followed by 100ms I/O time and one with priority 3 which has only 10ms CPU time. If we opt to work on all processes in the highest priority queue until the queue is empty, then  the process with priority 3 will have to wait 130ms until it gets a chance to run. Alternatively, if we switch to the next-highest priority runnable process, after 30ms of work on process 1, the other process will get a chance to be ran, decreasing the overall turn-around time.
+
+### Implementation
+Every process in the input is assigned, according to their priority, into three queues of respective priorities. The priority of a process can be either: {1, 2, 3}. Priority 1 is the highest priority.
+
+Each queue has a pointer pointing to the last-ran process within the queue. The pointer implements a round-robin approach as the pointer gets incremented once a process has  ran for the given quantum, allowing the next process in the queue to run. Whenever the processor needs to do a context-switch, the queue with the highest-priority is checked for a runnable process at the position of the pointer. If a runnable process is found, that is chosen to run. Otherwise, the same rationale applies to the queues in descending order of priority (ascending order of numbers representing their priority).
+
+Round-robin implies that a process cannot have two runs without the other processes from the queue having one run before it. As such, if all processes are blocking at every pointer location, the process waits until one becomes runnable. If two processes are runnable, the one with the highest priority will be chosen.
+
+## Performance
+In comparison to FCFS, Round-Robin does not run into starvation. This equates to a lower average turn-around time in general.
+
+For the following input, FCFS yields an average turn-around time of 1350.75,while Round-Robin yields 1066.33.
+
+```
+0 1 100 25 100 20 50 20 100 10 200 -1
+2 2 30 15 30 10 40 10 50 -1
+15 3 10 300 20 20 20 30 10 5 30 100 250 -1
+20 2 40 500 500 20 30 30 40 500 500 -1
+```
+
+Abstracting away from the exercise, multiple strategies exist which can improve the performance of this algorithm. Some of them make use of dynamically allocated priorities while others manipulate the quantum depending on the number of times a certain process has been visited. Such aspects are relevant in real systems since context switching comes with overhead. The type of system and the potential interactions that the system may be part of need to be taken into when choosing the quantum. 
+
 
 # Page-replacement
 ## Problem description
