@@ -153,3 +153,18 @@ The transition states of the queue for the aforementioned input ('-1' signifies 
 [1] [2] [7] [6] 
 [4] [2] [7] [6]
 ```
+
+## Performance
+Since heavily used pages do not get thrown out as easily, a lower number of page faults is to be expected when using the clock algorithm. The following is a list of results for both FCFS and clock:
+
+```
+4
+1 2 3 4 7 2 5 2 3 1 7 6 4
+```
+FCFS: 12 | clock: 11
+
+```
+3
+7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1
+```
+FCFS: 15 | clock: 11
