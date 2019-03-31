@@ -77,6 +77,7 @@ void insertIntoQueue(Process *p, Queue *q) {
         }
     }
     q->slots[q->back] = *p;
+    q->members++;
     q->back++;
 }
 
@@ -194,6 +195,7 @@ Queue initializeQueue(int size, int priority) {
     q.priority = priority;
     q.size = size;
     q.time = 0;
+    q.members = 0;
     q.front = 0;
     q.back = 0;
     q.slots = malloc(size * sizeof(Process));
@@ -383,7 +385,6 @@ void populateQueues(int **sortedArray, Queue *lowQueue, Queue *medQueue, Queue *
                 break;
         }
     }
-
 }
 
 int main(int argc, char* argv[]) {
@@ -400,6 +401,22 @@ int main(int argc, char* argv[]) {
     Queue highQueue = initializeQueue(numProcesses, P_HIGH);
     populateQueues(sortedArray, &lowQueue, &medQueue, &highQueue, numProcesses);
     
+    printf("lowQueue:\n");
+    printProcessesInQueue(lowQueue, lowQueue.members);
+    printf("medQueue:\n");
+    printProcessesInQueue(medQueue, medQueue.members);
+    printf("highQueue:\n");
+    printProcessesInQueue(highQueue, highQueue.members);
+
+    printf("lowQueue.members = %d\n", lowQueue.members);
+    freeProcessesInQueue(&lowQueue, lowQueue.members);
+    printf("medQueue.members = %d\n", medQueue.members);
+    freeProcessesInQueue(&medQueue, medQueue.members);
+    printf("highQueue.members = %d\n", highQueue.members);
+    freeProcessesInQueue(&highQueue, highQueue.members);
+
+    freeIntArray(sortedArray, numProcesses);
+
     free(lowQueue.slots);
     free(medQueue.slots);
     free(highQueue.slots);
