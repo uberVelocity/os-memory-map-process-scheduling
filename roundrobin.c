@@ -411,7 +411,6 @@ int fastForward(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
 }
 
 int allQueuesFinished(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
-    printf("l:%d m:%d h:%d\n", processesHaveFinished(lowQueue, lowQueue->members), processesHaveFinished(medQueue, medQueue->members), processesHaveFinished(highQueue, highQueue->members));
     return (processesHaveFinished(lowQueue, lowQueue->members) && processesHaveFinished(medQueue, medQueue->members) && processesHaveFinished(highQueue, highQueue->members));
 }
 
@@ -420,13 +419,7 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
     while (!allQueuesFinished(lowQueue, medQueue, highQueue)) {
         // Check if the high-priority process at pointer position
         // has arrived and is ready to be run.
-        printf("highQueue->members = %d\n", highQueue->members);
-        printf("highQueue->slots[highQueue->processPointer].arrivalTime = %d\n", highQueue->slots[highQueue->processPointer].arrivalTime);
-        printf("pclock = %d\n", pclock);
-        printf("!processesHaveFinished = %d\n\n", !processesHaveFinished(highQueue, highQueue->members));
-
         if (highQueue->members > 0 && highQueue->slots[highQueue->processPointer].arrivalTime <= pclock && !processesHaveFinished(highQueue, highQueue->members)) {
-            printf("working on high - pv:%d\tclock:%d\n", highQueue->slots[highQueue->processPointer].pointer, pclock);
             // Update time.
             if (highQueue->slots[highQueue->processPointer].
             times[highQueue->slots[highQueue->processPointer].pointer] >= QUANTUM) {
@@ -445,9 +438,7 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
                 // (CAN LAND ON I/O OR -1).
                 highQueue->slots[highQueue->processPointer].pointer++;
                 // Process ended.
-                printf("pointer value with which we compare = %d\n", highQueue->slots[highQueue->processPointer].times[highQueue->slots[highQueue->processPointer].pointer]);
                 if (highQueue->slots[highQueue->processPointer].times[highQueue->slots[highQueue->processPointer].pointer] == -1) {
-                    printf("SETTING PROCESS FROM HIGH QUEUE TO FINISHED\n");
                     highQueue->slots[highQueue->processPointer].finished = 1;
                     // Compute completionTime and turnaroundTime.
                     highQueue->slots[highQueue->processPointer].completionTime = pclock;
@@ -465,9 +456,7 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
                 highQueue->processPointer = 0;
             }
             else {
-               
                 highQueue->processPointer++;
-
             }
             // We are not interested in processes that have finished, so first we check
             // whether the whole queue has finished.
@@ -486,7 +475,6 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
 
         // MEDIUM QUEUE
         else if (medQueue->members > 0 && medQueue->slots[medQueue->processPointer].arrivalTime <= pclock && !processesHaveFinished(medQueue, medQueue->members)) {
-            printf("working on med - pv:%d\tclock:%d\n", medQueue->slots[medQueue->processPointer].pointer, pclock);
             // Update time.
             if (medQueue->slots[medQueue->processPointer].
             times[medQueue->slots[medQueue->processPointer].pointer] >= QUANTUM) {
@@ -506,12 +494,10 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
                 // Pointer of processor operation gets incremented.
                 // (CAN LAND ON I/O OR -1).
                 medQueue->slots[medQueue->processPointer].pointer++;
-                printf("pointer value with which we compare = %d\n", medQueue->slots[medQueue->processPointer].times[medQueue->slots[medQueue->processPointer].pointer]);
 
                 // Check if process ended.
                 if (medQueue->slots[medQueue->processPointer].
                 times[medQueue->slots[medQueue->processPointer].pointer] == -1) {
-                    printf("SETTING PROCESS FROM MEDIUM QUEUE TO FINISHED\n");
                     medQueue->slots[medQueue->processPointer].finished = 1;
                     // Compute completionTime and turnaroundTime.
                     medQueue->slots[medQueue->processPointer].completionTime = pclock;
@@ -550,7 +536,6 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
         // LOW QUEUE
         else if (lowQueue->members > 0 && lowQueue->slots[lowQueue->processPointer].arrivalTime <= pclock && !processesHaveFinished(lowQueue, lowQueue->members)) {
         // Update time.
-            printf("working on low - pv:%d\tclock:%d\n", lowQueue->slots[lowQueue->processPointer].pointer, pclock);
             if (lowQueue->slots[lowQueue->processPointer].
             times[lowQueue->slots[lowQueue->processPointer].pointer] >= QUANTUM) {
                 pclock += QUANTUM;
@@ -569,12 +554,10 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
                 // Pointer of processor operation gets incremented.
                 // (CAN LAND ON I/O OR -1).
                 lowQueue->slots[lowQueue->processPointer].pointer++;
-                printf("pointer value with which we compare = %d\n", lowQueue->slots[lowQueue->processPointer].times[lowQueue->slots[lowQueue->processPointer].pointer]);
 
                 // Check if process ended.
                 if (lowQueue->slots[lowQueue->processPointer].
                 times[lowQueue->slots[lowQueue->processPointer].pointer] == -1) {
-                    printf("SETTING PROCESS FROM LOW QUEUE TO FINISHED\n");
                     lowQueue->slots[lowQueue->processPointer].finished = 1;
                     // Compute completionTime and turnaroundTime.
                     lowQueue->slots[lowQueue->processPointer].completionTime = pclock;
@@ -614,7 +597,6 @@ void roundRobinPriority(Queue *lowQueue, Queue *medQueue, Queue *highQueue) {
         // first runnable process. If there are multiple finishing at the same time,
         // they should be execited by priority.
         else {
-            printf("IN THE ELSE\n");
             pclock = fastForward(lowQueue, medQueue, highQueue);
         }
     }
@@ -645,14 +627,14 @@ void printTotalAverage(Queue *low, Queue *med, Queue *high) {
         }
         la /= low->members;
     }
-    printf("la = %.2lf\n", la);
+    // printf("la = %.2lf\n", la);
     if (med->members > 0) {
         for (i = 0; i < med->members; i++) {
             ma += med->slots[i].turnaroundTime;
         }
         ma /= med->members;
     }
-    printf("ma = %.2lf\n", ma);
+    // printf("ma = %.2lf\n", ma);
     
     if (high->members > 0) {
         for (i = 0; i < high->members; i++) {
@@ -661,7 +643,7 @@ void printTotalAverage(Queue *low, Queue *med, Queue *high) {
         ha /= high->members;
     }
     
-    printf("ha = %.2lf\n", ha);
+    // printf("ha = %.2lf\n", ha);
 
     if (low->members > 0)   count++;
     if (med->members > 0)   count++;
@@ -682,24 +664,10 @@ int main(int argc, char* argv[]) {
     intArray = convertStrArr(input, numProcesses);
     sortedArray = sort2DArray(intArray, numProcesses);
     countProcesses(sortedArray, &l, &m, &h, numProcesses);
-    printf("COUNT PROCESSES: l = %d, m = %d, h = %d\n", l, m, h);
     Queue lowQueue = initializeQueue(numProcesses, P_LOW, l);
     Queue medQueue = initializeQueue(numProcesses, P_MEDIUM, m);
     Queue highQueue = initializeQueue(numProcesses, P_HIGH, h);
     populateQueues(sortedArray, &lowQueue, &medQueue, &highQueue, numProcesses);
-    
-    if (l > 0) {
-        printf("lowQueue:\n");
-        printProcessesInQueue(lowQueue, l);
-    }
-    if (m > 0) {
-        printf("medQueue:\n");
-        printProcessesInQueue(medQueue, m);
-    }
-    if (h > 0) {
-        printf("highQueue:\n");
-        printProcessesInQueue(highQueue, h);
-    }
 
     roundRobinPriority(&lowQueue, &medQueue, &highQueue);
 
