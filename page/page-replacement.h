@@ -10,6 +10,15 @@ typedef struct Queues {
     int pageFaults;
 }Queue;
 
+typedef struct TimedQueues {
+    int front;
+    int back;
+    Page *array;
+    int size;
+    int pageFaults;
+    int timer;
+}TimedQueue;
+
 typedef struct CircularLists {
     int *array;
     int *secondChances;
@@ -17,6 +26,12 @@ typedef struct CircularLists {
     int size;
     int pageFaults;
 }CList;
+
+typedef struct Pages {
+    int pageNumber;
+    int referenced;
+    int modified;
+}Page;
 
 void clock(int);
 void FIFO(int);

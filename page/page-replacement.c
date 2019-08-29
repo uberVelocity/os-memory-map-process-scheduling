@@ -204,6 +204,24 @@ void clock(int demo_mode) {
     free(clist.secondChances);
 }
 
+/**
+ * Initializes a page.
+ */
+Page initializePage(int pageNumber) {
+    Page page;
+    page.modified = 0;
+    page.referenced = 0;
+    page.pageNumber = pageNumber;
+    return page;
+}
+
+/**
+ * Stores an integer array as Pages in a TimedQueue
+ */
+void convertToTimedQueue(int *array) {
+    
+}
+
 int main(int argc, char* argv[]) {
     int demo_mode = 0;
     if (argv[1] != NULL && strcmp(argv[1], "demo") == 0) {
