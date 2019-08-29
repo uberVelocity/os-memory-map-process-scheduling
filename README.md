@@ -1,5 +1,5 @@
-# Operating Systems Lab 3: Scheduling and page replacement
-# Scheduling
+# Scheduling and page replacement
+
 ## Problem description
 The task of this exercise is to implement virtual process schedulers using two algorithms: FCFS (First Come First Served - non-preemptive) and Round-Robin (pre-emptive).
 
