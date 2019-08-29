@@ -216,10 +216,30 @@ Page initializePage(int pageNumber) {
 }
 
 /**
+ * Initializes a TimedQueue using a given input that represents pages.
+ */
+TimedQueue initializeTimedQueue(int numberPages, int *input) {
+    TimedQueue timedQueue;
+    timedQueue.back = 0;
+    timedQueue.front = 0;
+    timedQueue.size = numberPages;
+    timedQueue.timer = 0;
+    timedQueue.pageFaults = 0;
+    timedQueue.array = malloc(numberPages * sizeof(Page));
+    assert(timedQueue.array != NULL);
+    for (i = 0; i < numberPages; i++) {
+        Page page = initializePage(input[i]);
+        timedQueue.array[i] = page;
+    }
+}
+
+
+
+/**
  * Stores an integer array as Pages in a TimedQueue
  */
-void convertToTimedQueue(int *array) {
-    
+TimedQueue convertToTimedQueue(int *input) {
+    TimedQueue timedQueue = initializeTimedQueue(input);
 }
 
 int main(int argc, char* argv[]) {
