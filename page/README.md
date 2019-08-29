@@ -1,5 +1,3 @@
-
-
 # Page replacement algorithms
 
 This document serves as a small index of page-replacement algorithms implemented in C.
